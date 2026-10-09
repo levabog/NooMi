@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NooMi</title>
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#d9577a"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#d9577a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="NooMi"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -80,9 +80,9 @@ body.dn #bar .rx{display:none}body.dn #rv{filter:brightness(.92)}
 <div class="row"><button class="btn" id="copy">Copy Link</button><button class="btn g" id="share">Share</button><button class="btn g" id="wa">WhatsApp</button></div>
 <p id="gst" style="margin:14px 0 0">🟡 Waiting for your person…</p><div class="warn" id="noroom" hidden>Couldn\'t reach the signaling service. Check config.js (Supabase URL and key) and your connection.</div></div>
 <div class="card"><h2>Watch Source</h2><p class="mut">Open the video you want to watch (in another tab or window), start it, then share that tab or window. Only share content you're authorized to watch and share.</p>
-<label class="src on"><input type="radio" name="src" value="window" checked>🪟 Browser Window <small>Recommended</small></label>
-<label class="src"><input type="radio" name="src" value="browser">🌐 Browser Tab <small>Share one tab (can include its audio)</small></label>
-<label class="src"><input type="radio" name="src" value="monitor">🖥 Entire Screen <small>Share the whole display</small></label>
+<label class="src"><input type="radio" name="src" value="window">🪟 Browser Window <small>Picture only. Browsers can't share sound from a window</small></label>
+<label class="src on"><input type="radio" name="src" value="browser" checked>🌐 Browser Tab <small>Recommended for movies. Includes sound: tick “Share tab audio”</small></label>
+<label class="src"><input type="radio" name="src" value="monitor">🖥 Entire Screen <small>Sound works on Windows (tick “Share system audio”), not on Mac</small></label>
 <p class="mut">Your browser always asks you to choose; this just sets its starting suggestion.</p>
 <button class="btn" id="start-share">Start Sharing</button><button class="btn g" id="to-watch">Open watch screen</button></div></section>
 
@@ -95,11 +95,11 @@ body.dn #bar .rx{display:none}body.dn #rv{filter:brightness(.92)}
 <section class="v" id="v-watch" hidden>
 <video id="rv" autoplay playsinline></video><div id="fl"></div>
 <div class="tt"><span id="w-title"></span><span class="dot" id="cd" title="Connection">⚪</span></div>
-<div id="tap" hidden>Tap to start the movie ▶</div>
+<div id="tap" hidden>Tap for sound &amp; picture 🔊</div>
 <div id="banner" hidden><div id="bt"></div><button class="btn" id="resume" hidden>Resume Sharing</button></div>
 <div id="love" hidden></div>
 <div id="chat" hidden><div id="msgs"></div><input id="ci-in" placeholder="Type something…" maxlength="300"></div>
-<div id="bar"><span class="rx" id="rxs"></span><button class="love" id="sendlove">❤️ Send Love</button><button id="chatb" title="Chat">💬</button><button id="dn" title="Date Night Mode">🌙</button><button id="pip" title="Picture-in-picture">❐</button><button id="fs" title="Fullscreen">⛶</button><button id="thm" title="Theme">🎨</button>
+<div id="bar"><span class="rx" id="rxs"></span><button class="love" id="sendlove">❤️ Send Love</button><button id="chatb" title="Chat">💬</button><button id="dn" title="Date Night Mode">🌙</button><button id="vol" data-g title="Sound">🔊</button><button id="pip" title="Picture-in-picture">❐</button><button id="fs" title="Fullscreen">⛶</button><button id="thm" title="Theme">🎨</button>
 <select id="qual" data-h title="Quality"><option value="auto">Auto</option><option value="data">Data Saver</option><option value="bal">Balanced</option><option value="hd">HD</option></select>
 <button id="lock" data-h title="Lock room">🔓</button><button id="setup" data-h title="Share settings">⚙️</button><button id="leave" title="Leave">✕</button></div>
 <div id="cinfo" style="position:absolute;top:calc(34px + env(safe-area-inset-top,0px));right:12px;color:#fff;font-size:12px;text-shadow:0 1px 4px #000"></div></section>
@@ -112,7 +112,7 @@ fetch("/api/turn").then(r=>r.ok?r.json():null).then(j=>{const a=j&&(j.iceServers
 const myId=Math.random().toString(36).slice(2,10);let sb,ch;
 if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
 const RX=["❤️","😘","😂","😭","🥹","🔥","👀","🍿"],LOVE=["Thinking about you ❤️","Wish you were here.","Movie night is better with you.","Distance can't stop this moment.","You're my favorite person.","Come closer ❤️","I love you."];
-let room,pc,dc,stream,host=false,tok="",S={},locked=false,pid=null,hp=null,nonce="",buf={},pend=[],Q="auto",src="window",lastB=0,lastT=0,hello=null,idle,wasDown=false;
+let room,pc,dc,stream,host=false,tok="",S={},locked=false,pid=null,hp=null,nonce="",buf={},pend=[],Q="auto",src="browser",lastB=0,lastT=0,hello=null,idle,wasDown=false,hasAudio=false;
 const show=id=>{document.querySelectorAll(".v").forEach(v=>v.hidden=v.id!=="v-"+id);scrollTo(0,0)};
 let tt;const toast=m=>{const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3500)};
 const theme=t=>{document.body.dataset.theme=t;try{localStorage.setItem("nm-theme",t)}catch(e){}};
@@ -152,7 +152,7 @@ async function handle(o,p){
   else if(o.t==="ok"&&o.n===nonce){clearInterval(hello);hp=p;S.title=o.title;S.host=o.host;enterWatch()}
   else if(p===hp){
    if(o.t==="offer"){if(!pc)newPC();await pc.setRemoteDescription(o.s);flush();await pc.setLocalDescription(await pc.createAnswer());send({t:"answer",s:pc.localDescription})}
-   else if(o.t==="ice")addIce(o.c);else if(o.t==="end")ended()}}}
+   else if(o.t==="ice")addIce(o.c);else if(o.t==="audio"&&!o.on&&!host)toast("The host isn't sharing sound yet. They need to share a browser tab with “Share tab audio” ticked.");else if(o.t==="end")ended()}}}
 
 /* ---------- WebRTC ---------- */
 function newPC(){
@@ -162,9 +162,9 @@ function newPC(){
  if(host){dc=pc.createDataChannel("ctl");dcInit(dc);
   pc.onnegotiationneeded=async()=>{try{await pc.setLocalDescription(await pc.createOffer());send({t:"offer",s:pc.localDescription})}catch(e){}};
   if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream))}
- else{pc.ondatachannel=e=>dcInit(e.channel);pc.ontrack=e=>{const v=$("#rv");v.srcObject=e.streams[0];v.play().catch(()=>$("#tap").hidden=false)}}}
+ else{pc.ondatachannel=e=>dcInit(e.channel);pc.ontrack=e=>{const v=$("#rv");v.srcObject=e.streams[0];v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{});$("#tap").hidden=false;$("#vol").textContent="🔇"})}}}
 function cs(){const s=pc.connectionState,b=$("#banner");
- if(s==="connected"){if(wasDown){$("#bt").textContent="❤️ They're back. Resynchronizing…";b.hidden=false;setTimeout(()=>b.hidden=!stream&&host,2000)}else b.hidden=true;wasDown=false;setQ(Q)}
+ if(s==="connected"){if(wasDown){$("#bt").textContent="❤️ They're back. Resynchronizing…";b.hidden=false;setTimeout(()=>b.hidden=!stream&&host,2000)}else b.hidden=true;wasDown=false;setQ(Q);if(host)ctl({t:"audio",on:hasAudio})}
  else if(s==="disconnected"||s==="failed"){wasDown=true;$("#bt").textContent=host?"💕 Your person stepped away. Trying to reconnect…":"Reconnecting… we're waiting for the host.";b.hidden=false;if(host)setTimeout(()=>pc&&pc.connectionState!=="connected"&&pc.restartIce(),3000)}}
 function dcInit(c){dc=c;c.onmessage=e=>{let o;try{o=JSON.parse(e.data)}catch(x){return}
  if(o.t==="chat"&&typeof o.m==="string")chat(o.n,o.m);else if(o.t==="react"&&RX.includes(o.e))fl(o.e);else if(o.t==="love"&&typeof o.m==="string")love(o.m);else if(o.t==="end")ended()}}
@@ -193,8 +193,8 @@ $("#wa").onclick=()=>open("https://wa.me/?text="+encodeURIComponent(`${S.me} inv
 document.querySelectorAll("[name=src]").forEach(r=>r.onchange=()=>{src=r.value;document.querySelectorAll(".src").forEach(l=>l.classList.toggle("on",l.contains(r)&&r.checked))});
 async function share(){
  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){toast("This device can't share its screen. Host from a desktop browser — your person can still join from any device.");return false}
- let s;try{s=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:src,frameRate:30},audio:true})}catch(e){toast(e.name==="NotAllowedError"?"Sharing was cancelled — nothing is being shared yet.":"Couldn't start sharing.");return false}
- stream=s;const v=$("#rv");v.srcObject=s;v.muted=true;
+ let s;try{s=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:src,frameRate:30},audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},systemAudio:"include"})}catch(e){toast(e.name==="NotAllowedError"?"Sharing was cancelled — nothing is being shared yet.":"Couldn't start sharing.");return false}
+ stream=s;const v=$("#rv");v.srcObject=s;v.muted=true;hasAudio=s.getAudioTracks().length>0;ctl({t:"audio",on:hasAudio});if(!hasAudio)toast("No sound is being shared. Share a browser TAB and tick “Share tab audio” (or the entire screen on Windows with “Share system audio”).");
  if(pc)s.getTracks().forEach(t=>{const x=pc.getSenders().find(z=>z.track&&z.track.kind===t.kind);x?x.replaceTrack(t):pc.addTrack(t,s)});
  s.getVideoTracks()[0].onended=()=>{stream=null;$("#bt").textContent="The shared window is no longer being shared.";$("#resume").hidden=false;$("#banner").hidden=false};
  $("#banner").hidden=true;$("#resume").hidden=true;setQ(Q);return true}
@@ -218,12 +218,13 @@ $("#do-join").onclick=async()=>{S.me=$("#j-name").value.trim()||"Guest";$("#do-j
 
 /* ---------- watch screen ---------- */
 function enterWatch(){show("watch");$("#v-watch").hidden=false;$("#w-title").textContent=S.title||"";
- document.querySelectorAll("[data-h]").forEach(e=>e.hidden=!host);$("#leave").textContent=host?"End":"✕";$("#leave").style.fontSize="14px";
+ document.querySelectorAll("[data-h]").forEach(e=>e.hidden=!host);document.querySelectorAll("[data-g]").forEach(e=>e.hidden=host);$("#leave").textContent=host?"End":"✕";$("#leave").style.fontSize="14px";
  if(!$("#rxs").children.length)RX.forEach(e=>{const b=E("button",e);b.onclick=()=>{fl(e);ctl({t:"react",e})};$("#rxs").append(b)});
  if(host&&!stream){$("#bt").textContent="Nothing is being shared yet.";$("#resume").hidden=false;$("#banner").hidden=false}
  if(!host)$("#bt").textContent="Waiting for the movie to appear…",$("#banner").hidden=false;wake()}
-$("#rv").addEventListener("playing",()=>{if(!host)$("#banner").hidden=true;$("#tap").hidden=true});
-$("#tap").onclick=()=>{$("#rv").play();$("#tap").hidden=true};
+$("#rv").addEventListener("playing",()=>{if(!host)$("#banner").hidden=true;if(!$("#rv").muted)$("#tap").hidden=true});
+$("#tap").onclick=()=>{const v=$("#rv");v.muted=false;v.play().catch(()=>{});$("#tap").hidden=true;$("#vol").textContent="🔊"};
+$("#vol").onclick=()=>{const v=$("#rv");v.muted=!v.muted;$("#vol").textContent=v.muted?"🔇":"🔊";if(!v.muted)v.play().catch(()=>{})};
 function wake(){const b=$("#bar");b.classList.remove("hide");clearTimeout(idle);idle=setTimeout(()=>b.classList.add("hide"),3500)}
 ["mousemove","touchstart","click"].forEach(e=>$("#v-watch").addEventListener(e,wake));
 function fl(e){const s=E("span",e);s.style.left=(10+Math.random()*80)+"%";$("#fl").append(s);setTimeout(()=>s.remove(),3000)}
@@ -232,7 +233,14 @@ $("#sendlove").onclick=()=>{const m=LOVE[Math.floor(Math.random()*LOVE.length)];
 function chat(n,m){const d=E("div",(n||"Them")+": "+m);$("#msgs").append(d);$("#msgs").scrollTop=1e9;if($("#chat").hidden)toast((n||"Them")+": "+m.slice(0,60))}
 $("#chatb").onclick=()=>$("#chat").hidden=!$("#chat").hidden;
 $("#ci-in").onkeydown=e=>{if(e.key==="Enter"&&e.target.value.trim()){const m=e.target.value.trim();chat("You",m);ctl({t:"chat",n:S.me,m});e.target.value=""}};
-$("#fs").onclick=()=>{const v=$("#v-watch");document.fullscreenElement?document.exitFullscreen():(v.requestFullscreen||v.webkitRequestFullscreen||(()=>toast("Fullscreen isn't supported here."))).call(v)};
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+$("#fs").onclick=async()=>{const w=$("#v-watch"),v=$("#rv");
+ try{if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);try{screen.orientation.unlock()}catch(e){}return}
+  const rq=w.requestFullscreen||w.webkitRequestFullscreen;
+  if(rq){await rq.call(w);try{await screen.orientation.lock("landscape")}catch(e){}return}
+  if(v.webkitEnterFullscreen){v.webkitEnterFullscreen();return}
+ }catch(e){if(v.webkitEnterFullscreen){try{v.webkitEnterFullscreen();return}catch(x){}}}
+ toast("To go full screen on iPhone: tap Share, then Add to Home Screen, and open NooMi from your home screen.")};
 $("#pip").onclick=()=>{const v=$("#rv");(document.pictureInPictureEnabled&&v.requestPictureInPicture)?v.requestPictureInPicture().catch(()=>toast("Couldn't open picture-in-picture.")):toast("Picture-in-picture isn't supported here.")};
 $("#dn").onclick=()=>{const on=document.body.classList.toggle("dn");if(on)love("Lights down. Movie on. Enjoy the moment.")};
 function cleanup(){clearInterval(hello);try{pc&&pc.close()}catch(e){}pc=dc=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;try{ch&&sb.removeChannel(ch)}catch(e){}ch=null;$("#rv").srcObject=null;$("#v-watch").hidden=true}
