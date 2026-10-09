@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NooMi</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#d9577a"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/config.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body[data-theme=love]{--bg:linear-gradient(160deg,#fdeef1,#efe3f7);--card:#fffaf5;--ink:#4a2433;--mut:#8d6676;--acc:#d9577a;--acc2:#9b7fd0;--line:#ecd3d9;--gold:#c9a45c}
+body[data-theme=light]{--bg:#f6f3ef;--card:#fff;--ink:#23201f;--mut:#7a7570;--acc:#d9577a;--acc2:#b9748a;--line:#e5dfd8;--gold:#b89a5a}
+body[data-theme=midnight]{--bg:radial-gradient(circle at 50% 0,#241838,#0b0a10 60%);--card:#17141f;--ink:#f3eff6;--mut:#a79db3;--acc:#e0587f;--acc2:#7b55b8;--line:#2c2538;--gold:#c9a45c}
+html,body{margin:0;min-height:100%}
+body{font:16px/1.5 Inter,system-ui,sans-serif;background:var(--bg);background-attachment:fixed;color:var(--ink);transition:background .4s,color .4s}
+[hidden]{display:none!important}
+h1,h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0}
+.top{position:sticky;top:env(safe-area-inset-top,0px);display:flex;justify-content:space-between;align-items:center;padding:14px 20px;z-index:5}
+.logo{font-family:"Cormorant Garamond",Georgia,serif;font-size:24px;letter-spacing:.5px}.logo b{color:var(--acc)}
+.th button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);margin-left:6px;cursor:pointer}
+.th [data-t=love]{background:linear-gradient(135deg,#f6b8c8,#b79be0)}.th [data-t=light]{background:#f6f3ef}.th [data-t=midnight]{background:#17141f}
+.v{max-width:460px;margin:0 auto;padding:12px 20px 40px;text-align:center}
+.hero{font-size:56px;margin-top:6vh}.sub{font-family:"Cormorant Garamond",Georgia,serif;font-size:24px;color:var(--mut);margin:8px 0 28px;line-height:1.25}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 10px 40px rgba(120,60,90,.12);text-align:left;margin-bottom:18px}
+.card h2{font-size:28px;text-align:center;margin-bottom:12px}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
+input,select{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit}
+.btn{display:block;width:100%;padding:14px;border:0;border-radius:16px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font:600 15px Inter,sans-serif;cursor:pointer;margin-top:16px}
+.btn.g{background:transparent;color:var(--ink);border:1px solid var(--line)}.row{display:flex;gap:8px}.row .btn{margin-top:10px}
+.mut{color:var(--mut);font-size:13px}.warn{background:rgba(217,87,122,.12);border-radius:12px;padding:10px 12px;font-size:13px;margin-top:12px}
+#qr{display:flex;justify-content:center;margin:12px 0}#qr img,#qr canvas{background:#fff;padding:10px;border-radius:14px}
+.src{display:block;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:8px;cursor:pointer}.src input{width:auto;margin-right:8px}
+.src.on{border-color:var(--acc)}.src small{display:block;color:var(--mut);margin-left:24px}
+.pt{position:fixed;bottom:-30px;opacity:.18;pointer-events:none;animation:up 14s linear infinite;z-index:0}
+body:not([data-theme=love]) .pt{display:none}
+@keyframes up{to{transform:translateY(-115vh)}}
+#v-watch{position:fixed;inset:0;z-index:20;background:#000;max-width:none;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);text-align:left}
+#rv{width:100%;height:100%;object-fit:contain;background:#000}
+#bar{position:absolute;left:0;right:0;bottom:env(safe-area-inset-bottom,0px);padding:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;background:linear-gradient(transparent,rgba(0,0,0,.75));transition:opacity .4s}
+#bar.hide{opacity:0;pointer-events:none}
+#bar button,#bar select{min-width:44px;height:44px;border-radius:22px;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:20px;cursor:pointer;padding:0 12px;width:auto}
+#bar select{font-size:13px;color:#fff;background:rgba(255,255,255,.16)}#bar option{color:#000}
+#bar .love{background:linear-gradient(135deg,var(--acc),var(--acc2));font-size:14px;font-weight:600}
+.tt{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;justify-content:space-between;color:#fff;font-size:14px;text-shadow:0 1px 4px #000;pointer-events:none}.tt>*{pointer-events:auto}
+#banner,#tap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,10,25,.85);color:#fff;border-radius:18px;padding:18px 22px;text-align:center;max-width:80%}
+#fl{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#fl span{position:absolute;bottom:90px;font-size:34px;animation:fl 3s ease-out forwards}
+@keyframes fl{to{transform:translateY(-60vh) rotate(12deg);opacity:0}}
+#chat{position:absolute;right:10px;bottom:80px;width:min(320px,90vw);background:rgba(15,10,20,.88);color:#fff;border-radius:18px;padding:12px}
+#msgs{max-height:200px;overflow:auto;font-size:14px;margin-bottom:8px}#msgs div{margin:3px 0}
+#chat input{background:rgba(255,255,255,.1);color:#fff;border-color:transparent}
+#love{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font:600 28px "Cormorant Garamond",serif;text-align:center;background:rgba(40,10,30,.55);padding:20px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:14px;font-size:14px;z-index:50;max-width:88vw}
+body.dn #bar .rx{display:none}body.dn #rv{filter:brightness(.92)}
+.dot{cursor:pointer}
+</style></head>
+<body data-theme="love">
+<header class="top"><div class="logo"><b>♡</b> NooMi</div><div class="th"><button data-t="love" title="Love Mode"></button><button data-t="light" title="Light Cinema"></button><button data-t="midnight" title="Midnight Cinema"></button></div></header>
+
+<section class="v" id="v-home"><div class="hero">♡</div><h1 style="font-size:46px">NooMi</h1>
+<p class="sub">Same movie.<br>Same moment.<br>Different places.</p>
+<div class="card" style="text-align:center"><div style="font-size:28px">🎬 MOVIE NIGHT</div><p class="mut">Watch something together from anywhere</p><button class="btn" id="go-create">Create Room</button></div>
+<p class="mut">Join a room</p><div class="row"><input id="code" placeholder="Enter room code or link"><button class="btn g" id="go-join" style="width:auto;margin:0;padding:0 18px">Join</button></div>
+<p class="mut" style="margin-top:28px;font-style:italic">“Made for two hearts.”</p>
+<div class="warn" id="unsup" hidden>NooMi works best in a modern browser. Please use a recent version of Chrome, Edge, Safari or Firefox.</div></section>
+
+<section class="v" id="v-create" hidden><div class="card"><h2>💕 Movie Night</h2>
+<label>Your name</label><input id="c-me" maxlength="30">
+<label>Partner's name</label><input id="c-pt" maxlength="30">
+<label>Movie Night title</label><input id="c-title" maxlength="50" value="Our Friday Night 🎬">
+<label>Room privacy</label><input value="● Private link only" disabled>
+<label>Room PIN (optional)</label><div class="row"><input id="c-pin" maxlength="6" inputmode="numeric"><button class="btn g" id="gen-pin" style="width:auto;margin:0;padding:0 14px">Generate</button></div>
+<button class="btn" id="do-create">Create Room</button></div><button class="btn g" data-go="home">Back</button></section>
+
+<section class="v" id="v-host" hidden><div class="card" style="text-align:center"><h2 id="h-title"></h2><div style="font-size:26px">❤️</div><div id="qr"></div>
+<p class="mut">Scan this code or send the private link</p><input id="link" readonly>
+<div class="row"><button class="btn" id="copy">Copy Link</button><button class="btn g" id="share">Share</button><button class="btn g" id="wa">WhatsApp</button></div>
+<p id="gst" style="margin:14px 0 0">🟡 Waiting for your person…</p><div class="warn" id="noroom" hidden>Couldn\'t reach the signaling service. Check config.js (Supabase URL and key) and your connection.</div></div>
+<div class="card"><h2>Watch Source</h2><p class="mut">Open the video you want to watch (in another tab or window), start it, then share that tab or window. Only share content you're authorized to watch and share.</p>
+<label class="src on"><input type="radio" name="src" value="window" checked>🪟 Browser Window <small>Recommended</small></label>
+<label class="src"><input type="radio" name="src" value="browser">🌐 Browser Tab <small>Share one tab (can include its audio)</small></label>
+<label class="src"><input type="radio" name="src" value="monitor">🖥 Entire Screen <small>Share the whole display</small></label>
+<p class="mut">Your browser always asks you to choose; this just sets its starting suggestion.</p>
+<button class="btn" id="start-share">Start Sharing</button><button class="btn g" id="to-watch">Open watch screen</button></div></section>
+
+<section class="v" id="v-join" hidden><div class="card" style="text-align:center"><div style="font-size:30px">🎬</div><h2>You're invited to Movie Night</h2><p class="mut">💕</p>
+<label style="text-align:left">Your name</label><input id="j-name" maxlength="30"><div id="j-pinw" hidden><label style="text-align:left">Room PIN</label><input id="j-pin" maxlength="6" inputmode="numeric"></div>
+<button class="btn" id="do-join">Join Movie Night</button><p class="mut" id="j-msg"></p></div></section>
+
+<section class="v" id="v-end" hidden><div class="hero" style="margin-top:12vh">💕</div><h2 id="end-msg" style="font-size:32px">This movie night has ended ❤️</h2><p class="mut">Ask your person to create a new room.</p><button class="btn g" data-go="home">Home</button></section>
+
+<section class="v" id="v-watch" hidden>
+<video id="rv" autoplay playsinline></video><div id="fl"></div>
+<div class="tt"><span id="w-title"></span><span class="dot" id="cd" title="Connection">⚪</span></div>
+<div id="tap" hidden>Tap to start the movie ▶</div>
+<div id="banner" hidden><div id="bt"></div><button class="btn" id="resume" hidden>Resume Sharing</button></div>
+<div id="love" hidden></div>
+<div id="chat" hidden><div id="msgs"></div><input id="ci-in" placeholder="Type something…" maxlength="300"></div>
+<div id="bar"><span class="rx" id="rxs"></span><button class="love" id="sendlove">❤️ Send Love</button><button id="chatb" title="Chat">💬</button><button id="dn" title="Date Night Mode">🌙</button><button id="pip" title="Picture-in-picture">❐</button><button id="fs" title="Fullscreen">⛶</button><button id="thm" title="Theme">🎨</button>
+<select id="qual" data-h title="Quality"><option value="auto">Auto</option><option value="data">Data Saver</option><option value="bal">Balanced</option><option value="hd">HD</option></select>
+<button id="lock" data-h title="Lock room">🔓</button><button id="setup" data-h title="Share settings">⚙️</button><button id="leave" title="Leave">✕</button></div>
+<div id="cinfo" style="position:absolute;top:calc(34px + env(safe-area-inset-top,0px));right:12px;color:#fff;font-size:12px;text-shadow:0 1px 4px #000"></div></section>
+<div id="toast" hidden></div>
+
+<script>
+const $=s=>document.querySelector(s),E=(t,x)=>{const e=document.createElement(t);e.textContent=x;return e};
+let ICE=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
+fetch("/api/turn").then(r=>r.ok?r.json():null).then(j=>{const a=j&&(j.iceServers||j);if(Array.isArray(a)&&a.length)ICE=a}).catch(()=>{});
+const myId=Math.random().toString(36).slice(2,10);let sb,ch;
+if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
+const RX=["❤️","😘","😂","😭","🥹","🔥","👀","🍿"],LOVE=["Thinking about you ❤️","Wish you were here.","Movie night is better with you.","Distance can't stop this moment.","You're my favorite person.","Come closer ❤️","I love you."];
+let room,pc,dc,stream,host=false,tok="",S={},locked=false,pid=null,hp=null,nonce="",buf={},pend=[],Q="auto",src="window",lastB=0,lastT=0,hello=null,idle,wasDown=false;
+const show=id=>{document.querySelectorAll(".v").forEach(v=>v.hidden=v.id!=="v-"+id);scrollTo(0,0)};
+let tt;const toast=m=>{const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3500)};
+const theme=t=>{document.body.dataset.theme=t;try{localStorage.setItem("nm-theme",t)}catch(e){}};
+let st=null;try{st=localStorage.getItem("nm-theme")}catch(e){}
+theme(st||(matchMedia("(prefers-color-scheme: dark)").matches?"midnight":"love"));
+document.querySelectorAll(".th button").forEach(b=>b.onclick=()=>theme(b.dataset.t));
+$("#thm").onclick=()=>{const o=["love","light","midnight"];theme(o[(o.indexOf(document.body.dataset.theme)+1)%3])};
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>show(b.dataset.go));
+for(let i=0;i<7;i++){const s=E("span","♡");s.className="pt";s.style.cssText=`left:${i*15}%;font-size:${18+i*4}px;animation-delay:-${i*2}s`;document.body.append(s)}
+if(!window.RTCPeerConnection)$("#unsup").hidden=false;
+const rnd=n=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return[...a].map(x=>"abcdefghijklmnopqrstuvwxyz0123456789"[x%36]).join("")};
+
+/* ---------- signaling over the artifact room capability ---------- */
+function connect(){return new Promise(res=>{try{
+ const C=window.NOOMI||{};if(!C.supabaseUrl||!window.supabase)return res(false);
+ sb=sb||supabase.createClient(C.supabaseUrl,C.supabaseKey);
+ ch=sb.channel("n"+tok,{config:{broadcast:{self:false}}});
+ ch.on("broadcast",{event:"sig"},({payload})=>payload&&onSig({isMe:payload.f===myId,data:payload,peer:payload.f}));
+ const t=setTimeout(()=>res(false),8000);
+ ch.subscribe(st=>{if(st==="SUBSCRIBED"){clearTimeout(t);res(true)}})}catch(e){res(false)}})}
+function send(o){const s=JSON.stringify(o),id=rnd(6),n=Math.ceil(s.length/2800);for(let k=0;k<n;k++)ch.send({type:"broadcast",event:"sig",payload:{f:myId,i:id,k,n,d:s.slice(k*2800,(k+1)*2800)}}).catch(()=>{})}
+function onSig(m){if(m.isMe)return;const d=m.data;if(!d||typeof d.i!=="string"||typeof d.d!=="string")return;
+ const b=buf[d.i]=buf[d.i]||{p:[],c:0};b.p[d.k]=d.d;if(++b.c<d.n)return;delete buf[d.i];let o;try{o=JSON.parse(b.p.join(""))}catch(e){return}handle(o,m.peer)}
+async function addIce(c){if(pc&&pc.remoteDescription){try{await pc.addIceCandidate(c)}catch(e){}}else pend.push(c)}
+async function flush(){for(const c of pend.splice(0))try{await pc.addIceCandidate(c)}catch(e){}}
+async function handle(o,p){
+ if(host){
+  if(o.t==="hello"){
+   if(locked)return send({t:"deny",n:o.n,r:"This room is locked."});
+   if(S.pin&&o.pin!==S.pin)return send({t:"deny",n:o.n,r:"That PIN doesn't match."});
+   if(pid&&pid!==p&&pc&&pc.connectionState==="connected")return send({t:"deny",n:o.n,r:"This movie night already has two people."});
+   pid=p;S.guest=String(o.name||"Your person").slice(0,30);$("#gst").textContent="🟢 "+S.guest+" joined";
+   send({t:"ok",n:o.n,title:S.title,host:S.me});newPC()}
+  else if(p===pid&&pc){if(o.t==="answer"){await pc.setRemoteDescription(o.s);flush()}else if(o.t==="ice")addIce(o.c)}
+ }else{
+  if(o.t==="deny"&&o.n===nonce){clearInterval(hello);$("#j-msg").textContent=o.r;$("#do-join").disabled=false}
+  else if(o.t==="ok"&&o.n===nonce){clearInterval(hello);hp=p;S.title=o.title;S.host=o.host;enterWatch()}
+  else if(p===hp){
+   if(o.t==="offer"){if(!pc)newPC();await pc.setRemoteDescription(o.s);flush();await pc.setLocalDescription(await pc.createAnswer());send({t:"answer",s:pc.localDescription})}
+   else if(o.t==="ice")addIce(o.c);else if(o.t==="end")ended()}}}
+
+/* ---------- WebRTC ---------- */
+function newPC(){
+ if(pc)pc.close();pc=new RTCPeerConnection({iceServers:ICE});pend=[];
+ pc.onicecandidate=e=>e.candidate&&send({t:"ice",c:e.candidate});
+ pc.onconnectionstatechange=cs;
+ if(host){dc=pc.createDataChannel("ctl");dcInit(dc);
+  pc.onnegotiationneeded=async()=>{try{await pc.setLocalDescription(await pc.createOffer());send({t:"offer",s:pc.localDescription})}catch(e){}};
+  if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream))}
+ else{pc.ondatachannel=e=>dcInit(e.channel);pc.ontrack=e=>{const v=$("#rv");v.srcObject=e.streams[0];v.play().catch(()=>$("#tap").hidden=false)}}}
+function cs(){const s=pc.connectionState,b=$("#banner");
+ if(s==="connected"){if(wasDown){$("#bt").textContent="❤️ They're back. Resynchronizing…";b.hidden=false;setTimeout(()=>b.hidden=!stream&&host,2000)}else b.hidden=true;wasDown=false;setQ(Q)}
+ else if(s==="disconnected"||s==="failed"){wasDown=true;$("#bt").textContent=host?"💕 Your person stepped away. Trying to reconnect…":"Reconnecting… we're waiting for the host.";b.hidden=false;if(host)setTimeout(()=>pc&&pc.connectionState!=="connected"&&pc.restartIce(),3000)}}
+function dcInit(c){dc=c;c.onmessage=e=>{let o;try{o=JSON.parse(e.data)}catch(x){return}
+ if(o.t==="chat"&&typeof o.m==="string")chat(o.n,o.m);else if(o.t==="react"&&RX.includes(o.e))fl(o.e);else if(o.t==="love"&&typeof o.m==="string")love(o.m);else if(o.t==="end")ended()}}
+const ctl=o=>{if(dc&&dc.readyState==="open")dc.send(JSON.stringify(o))};
+async function setQ(q){Q=q;const s=pc&&pc.getSenders().find(x=>x.track&&x.track.kind==="video");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];
+ const m={data:[8e5,2],bal:[25e5,1.5],hd:[6e6,1],auto:[0,1]}[q],e=p.encodings[0];if(m[0])e.maxBitrate=m[0];else delete e.maxBitrate;e.scaleResolutionDownBy=m[1];try{await s.setParameters(p)}catch(x){}}
+setInterval(async()=>{if(!pc||pc.connectionState!=="connected")return;let rtt=0,lost=0,tot=0,bytes=0,rel=false;const r=await pc.getStats();
+ r.forEach(x=>{if(x.type==="candidate-pair"&&x.nominated&&x.state==="succeeded"){rtt=(x.currentRoundTripTime||0)*1e3;const l=r.get(x.localCandidateId);rel=!!l&&l.candidateType==="relay"}
+  if(x.type==="inbound-rtp"&&x.kind==="video"){lost=x.packetsLost;tot=x.packetsReceived+x.packetsLost;bytes=x.bytesReceived}
+  if(x.type==="outbound-rtp"&&x.kind==="video")bytes=x.bytesSent});
+ const n=performance.now(),br=lastB&&bytes>=lastB?(bytes-lastB)*8/(n-lastT)/1e3:0;lastB=bytes;lastT=n;const lp=tot?lost/tot*100:0,q=rtt<150&&lp<2?0:rtt<350&&lp<6?1:2;
+ $("#cd").textContent=["🟢","🟡","🔴"][q];$("#cinfo").dataset.v=`${["Excellent","Fair","Poor"][q]} · ${rtt|0} ms · loss ${lp.toFixed(1)}% · ${br.toFixed(1)} Mbps · ${rel?"relay (TURN)":"direct"}`},3000);
+$("#cd").onclick=()=>{const c=$("#cinfo");c.textContent=c.textContent?"":c.dataset.v||"Measuring…"};
+
+/* ---------- host: create, invite, share ---------- */
+$("#go-create").onclick=()=>show("create");
+$("#gen-pin").onclick=()=>$("#c-pin").value=String(Math.floor(1000+Math.random()*9000));
+$("#do-create").onclick=async()=>{
+ S={me:$("#c-me").value.trim()||"Me",pt:$("#c-pt").value.trim(),title:$("#c-title").value.trim()||"Movie Night",pin:$("#c-pin").value.trim()};host=true;tok=rnd(12);
+ $("#h-title").textContent=S.title;const url=location.href.split("#")[0]+"#r="+tok;$("#link").value=url;$("#qr").innerHTML="";
+ try{new QRCode($("#qr"),{text:url,width:176,height:176})}catch(e){}
+ show("host");$("#noroom").hidden=await connect();$("#share").hidden=!navigator.share};
+$("#copy").onclick=()=>navigator.clipboard.writeText($("#link").value).then(()=>toast("Link copied ❤️"),()=>{$("#link").select();toast("Press copy on your keyboard")});
+$("#share").onclick=()=>navigator.share({title:S.title,text:`${S.me} invited you to Movie Night 🎬`,url:$("#link").value}).catch(()=>{});
+$("#wa").onclick=()=>open("https://wa.me/?text="+encodeURIComponent(`${S.me} invited you to Movie Night 🎬 ${$("#link").value}`+(S.pin?` (PIN ${S.pin})`:"")),"_blank");
+document.querySelectorAll("[name=src]").forEach(r=>r.onchange=()=>{src=r.value;document.querySelectorAll(".src").forEach(l=>l.classList.toggle("on",l.contains(r)&&r.checked))});
+async function share(){
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){toast("This device can't share its screen. Host from a desktop browser — your person can still join from any device.");return false}
+ let s;try{s=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:src,frameRate:30},audio:true})}catch(e){toast(e.name==="NotAllowedError"?"Sharing was cancelled — nothing is being shared yet.":"Couldn't start sharing.");return false}
+ stream=s;const v=$("#rv");v.srcObject=s;v.muted=true;
+ if(pc)s.getTracks().forEach(t=>{const x=pc.getSenders().find(z=>z.track&&z.track.kind===t.kind);x?x.replaceTrack(t):pc.addTrack(t,s)});
+ s.getVideoTracks()[0].onended=()=>{stream=null;$("#bt").textContent="The shared window is no longer being shared.";$("#resume").hidden=false;$("#banner").hidden=false};
+ $("#banner").hidden=true;$("#resume").hidden=true;setQ(Q);return true}
+$("#start-share").onclick=async()=>{if(await share())enterWatch()};
+$("#to-watch").onclick=()=>enterWatch();
+$("#resume").onclick=share;
+$("#setup").onclick=()=>{$("#v-watch").hidden=true;show("host")};
+$("#lock").onclick=()=>{locked=!locked;$("#lock").textContent=locked?"🔒":"🔓";toast(locked?"Room locked. No additional participants can join.":"Room unlocked.")};
+$("#qual").onchange=e=>setQ(e.target.value);
+
+/* ---------- guest: join ---------- */
+const tokOf=s=>{const m=String(s).match(/(?:r=)?([a-z0-9]{12})\s*$/i);return m?m[1].toLowerCase():""};
+function toJoin(t){tok=t;host=false;show("join")}
+$("#go-join").onclick=()=>{const t=tokOf($("#code").value);t?toJoin(t):toast("That doesn't look like a room code.")};
+const h=location.hash.match(/r=([a-z0-9]{12})/);if(h)toJoin(h[1]);
+$("#j-pinw").hidden=false;
+$("#do-join").onclick=async()=>{S.me=$("#j-name").value.trim()||"Guest";$("#do-join").disabled=true;$("#j-msg").textContent="Connecting…";
+ if(!await connect()){$("#j-msg").textContent="Couldn't reach the signaling service. Please try again in a moment.";$("#do-join").disabled=false;return}
+ nonce=rnd(8);let tries=0;const hi=()=>{if(++tries>12){clearInterval(hello);$("#j-msg").textContent="💕 We couldn't find your person. Is the room still open?";$("#do-join").disabled=false;return}send({t:"hello",n:nonce,name:S.me,pin:$("#j-pin").value.trim()})};
+ hi();hello=setInterval(hi,3000)};
+
+/* ---------- watch screen ---------- */
+function enterWatch(){show("watch");$("#v-watch").hidden=false;$("#w-title").textContent=S.title||"";
+ document.querySelectorAll("[data-h]").forEach(e=>e.hidden=!host);$("#leave").textContent=host?"End":"✕";$("#leave").style.fontSize="14px";
+ if(!$("#rxs").children.length)RX.forEach(e=>{const b=E("button",e);b.onclick=()=>{fl(e);ctl({t:"react",e})};$("#rxs").append(b)});
+ if(host&&!stream){$("#bt").textContent="Nothing is being shared yet.";$("#resume").hidden=false;$("#banner").hidden=false}
+ if(!host)$("#bt").textContent="Waiting for the movie to appear…",$("#banner").hidden=false;wake()}
+$("#rv").addEventListener("playing",()=>{if(!host)$("#banner").hidden=true;$("#tap").hidden=true});
+$("#tap").onclick=()=>{$("#rv").play();$("#tap").hidden=true};
+function wake(){const b=$("#bar");b.classList.remove("hide");clearTimeout(idle);idle=setTimeout(()=>b.classList.add("hide"),3500)}
+["mousemove","touchstart","click"].forEach(e=>$("#v-watch").addEventListener(e,wake));
+function fl(e){const s=E("span",e);s.style.left=(10+Math.random()*80)+"%";$("#fl").append(s);setTimeout(()=>s.remove(),3000)}
+function love(m){const l=$("#love");l.replaceChildren(E("div","❤️"),E("div","“"+m+"”"));l.hidden=false;setTimeout(()=>l.hidden=true,3200)}
+$("#sendlove").onclick=()=>{const m=LOVE[Math.floor(Math.random()*LOVE.length)];ctl({t:"love",m});toast("Sent ❤️")};
+function chat(n,m){const d=E("div",(n||"Them")+": "+m);$("#msgs").append(d);$("#msgs").scrollTop=1e9;if($("#chat").hidden)toast((n||"Them")+": "+m.slice(0,60))}
+$("#chatb").onclick=()=>$("#chat").hidden=!$("#chat").hidden;
+$("#ci-in").onkeydown=e=>{if(e.key==="Enter"&&e.target.value.trim()){const m=e.target.value.trim();chat("You",m);ctl({t:"chat",n:S.me,m});e.target.value=""}};
+$("#fs").onclick=()=>{const v=$("#v-watch");document.fullscreenElement?document.exitFullscreen():(v.requestFullscreen||v.webkitRequestFullscreen||(()=>toast("Fullscreen isn't supported here."))).call(v)};
+$("#pip").onclick=()=>{const v=$("#rv");(document.pictureInPictureEnabled&&v.requestPictureInPicture)?v.requestPictureInPicture().catch(()=>toast("Couldn't open picture-in-picture.")):toast("Picture-in-picture isn't supported here.")};
+$("#dn").onclick=()=>{const on=document.body.classList.toggle("dn");if(on)love("Lights down. Movie on. Enjoy the moment.")};
+function cleanup(){clearInterval(hello);try{pc&&pc.close()}catch(e){}pc=dc=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;try{ch&&sb.removeChannel(ch)}catch(e){}ch=null;$("#rv").srcObject=null;$("#v-watch").hidden=true}
+function ended(){cleanup();show("end")}
+$("#leave").onclick=()=>{if(host)ctl({t:"end"}),send({t:"end"});cleanup();show(host?"end":"home");if(host)$("#end-msg").textContent="Movie night ended ❤️"};
+</script></body></html>

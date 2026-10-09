@@ -1,0 +1,4 @@
+/*
+  Permissions-Policy: display-capture=(self)
+/sw.js
+  Cache-Control: no-cache
