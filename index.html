@@ -108,11 +108,11 @@ body.dn #bar .rx{display:none}body.dn #rv{filter:brightness(.92)}
 <script>
 const $=s=>document.querySelector(s),E=(t,x)=>{const e=document.createElement(t);e.textContent=x;return e};
 let ICE=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
-fetch("/api/turn").then(r=>r.ok?r.json():null).then(j=>{const a=j&&(j.iceServers||j);if(Array.isArray(a)&&a.length)ICE=a}).catch(()=>{});
+const iceReady=fetch("/api/turn").then(r=>r.ok?r.json():null).then(j=>{const a=j&&(j.iceServers||j);if(Array.isArray(a)&&a.length)ICE=a}).catch(()=>{});
 const myId=Math.random().toString(36).slice(2,10);let sb,ch;
 if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
 const RX=["❤️","😘","😂","😭","🥹","🔥","👀","🍿"],LOVE=["Thinking about you ❤️","Wish you were here.","Movie night is better with you.","Distance can't stop this moment.","You're my favorite person.","Come closer ❤️","I love you."];
-let room,pc,dc,stream,host=false,tok="",S={},locked=false,pid=null,hp=null,nonce="",buf={},pend=[],Q="auto",src="browser",lastB=0,lastT=0,hello=null,idle,wasDown=false,hasAudio=false;
+let room,pc,dc,stream,host=false,tok="",S={},locked=false,pid=null,hp=null,nonce="",buf={},pend=[],Q="auto",src="browser",lastB=0,lastT=0,hello=null,idle,wasDown=false,hasAudio=false,lowCap=false,good=0;
 const show=id=>{document.querySelectorAll(".v").forEach(v=>v.hidden=v.id!=="v-"+id);scrollTo(0,0)};
 let tt;const toast=m=>{const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3500)};
 const theme=t=>{document.body.dataset.theme=t;try{localStorage.setItem("nm-theme",t)}catch(e){}};
@@ -151,11 +151,11 @@ async function handle(o,p){
   if(o.t==="deny"&&o.n===nonce){clearInterval(hello);$("#j-msg").textContent=o.r;$("#do-join").disabled=false}
   else if(o.t==="ok"&&o.n===nonce){clearInterval(hello);hp=p;S.title=o.title;S.host=o.host;enterWatch()}
   else if(p===hp){
-   if(o.t==="offer"){if(!pc)newPC();await pc.setRemoteDescription(o.s);flush();await pc.setLocalDescription(await pc.createAnswer());send({t:"answer",s:pc.localDescription})}
+   if(o.t==="offer"){if(!pc)await newPC();await pc.setRemoteDescription(o.s);flush();await pc.setLocalDescription(await pc.createAnswer());send({t:"answer",s:pc.localDescription})}
    else if(o.t==="ice")addIce(o.c);else if(o.t==="audio"&&!o.on&&!host)toast("The host isn't sharing sound yet. They need to share a browser tab with “Share tab audio” ticked.");else if(o.t==="end")ended()}}}
 
 /* ---------- WebRTC ---------- */
-function newPC(){
+async function newPC(){try{await Promise.race([iceReady,new Promise(r=>setTimeout(r,2500))])}catch(e){}
  if(pc)pc.close();pc=new RTCPeerConnection({iceServers:ICE});pend=[];
  pc.onicecandidate=e=>e.candidate&&send({t:"ice",c:e.candidate});
  pc.onconnectionstatechange=cs;
@@ -165,17 +165,19 @@ function newPC(){
  else{pc.ondatachannel=e=>dcInit(e.channel);pc.ontrack=e=>{const v=$("#rv");v.srcObject=e.streams[0];v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{});$("#tap").hidden=false;$("#vol").textContent="🔇"})}}}
 function cs(){const s=pc.connectionState,b=$("#banner");
  if(s==="connected"){if(wasDown){$("#bt").textContent="❤️ They're back. Resynchronizing…";b.hidden=false;setTimeout(()=>b.hidden=!stream&&host,2000)}else b.hidden=true;wasDown=false;setQ(Q);if(host)ctl({t:"audio",on:hasAudio})}
- else if(s==="disconnected"||s==="failed"){wasDown=true;$("#bt").textContent=host?"💕 Your person stepped away. Trying to reconnect…":"Reconnecting… we're waiting for the host.";b.hidden=false;if(host)setTimeout(()=>pc&&pc.connectionState!=="connected"&&pc.restartIce(),3000)}}
+ else if(s==="disconnected"||s==="failed"){wasDown=true;if(!host)setTimeout(()=>{if(pc&&pc.connectionState!=="connected"&&nonce)send({t:"hello",n:nonce,name:S.me,pin:$("#j-pin").value.trim()})},5000);$("#bt").textContent=host?"💕 Your person stepped away. Trying to reconnect…":"Reconnecting… we're waiting for the host.";b.hidden=false;if(host)setTimeout(()=>pc&&pc.connectionState!=="connected"&&pc.restartIce(),3000)}}
 function dcInit(c){dc=c;c.onmessage=e=>{let o;try{o=JSON.parse(e.data)}catch(x){return}
  if(o.t==="chat"&&typeof o.m==="string")chat(o.n,o.m);else if(o.t==="react"&&RX.includes(o.e))fl(o.e);else if(o.t==="love"&&typeof o.m==="string")love(o.m);else if(o.t==="end")ended()}}
 const ctl=o=>{if(dc&&dc.readyState==="open")dc.send(JSON.stringify(o))};
-async function setQ(q){Q=q;const s=pc&&pc.getSenders().find(x=>x.track&&x.track.kind==="video");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];
- const m={data:[8e5,2],bal:[25e5,1.5],hd:[6e6,1],auto:[0,1]}[q],e=p.encodings[0];if(m[0])e.maxBitrate=m[0];else delete e.maxBitrate;e.scaleResolutionDownBy=m[1];try{await s.setParameters(p)}catch(x){}}
-setInterval(async()=>{if(!pc||pc.connectionState!=="connected")return;let rtt=0,lost=0,tot=0,bytes=0,rel=false;const r=await pc.getStats();
+async function enc(b,sc){const s=pc&&pc.getSenders().find(x=>x.track&&x.track.kind==="video");if(!s)return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];const e=p.encodings[0];
+ if(b)e.maxBitrate=b;else delete e.maxBitrate;e.scaleResolutionDownBy=sc;if(b&&b<1e6)e.maxFramerate=20;else delete e.maxFramerate;try{await s.setParameters(p)}catch(x){}}
+function setQ(q){Q=q;lowCap=false;const m={data:[7e5,2],bal:[25e5,1.5],hd:[6e6,1],auto:[0,1]}[q];return enc(m[0],m[1])}
+setInterval(async()=>{if(!pc||pc.connectionState!=="connected")return;let rtt=0,lost=0,tot=0,bytes=0,rel=false,lp2=0;const r=await pc.getStats();
  r.forEach(x=>{if(x.type==="candidate-pair"&&x.nominated&&x.state==="succeeded"){rtt=(x.currentRoundTripTime||0)*1e3;const l=r.get(x.localCandidateId);rel=!!l&&l.candidateType==="relay"}
   if(x.type==="inbound-rtp"&&x.kind==="video"){lost=x.packetsLost;tot=x.packetsReceived+x.packetsLost;bytes=x.bytesReceived}
-  if(x.type==="outbound-rtp"&&x.kind==="video")bytes=x.bytesSent});
- const n=performance.now(),br=lastB&&bytes>=lastB?(bytes-lastB)*8/(n-lastT)/1e3:0;lastB=bytes;lastT=n;const lp=tot?lost/tot*100:0,q=rtt<150&&lp<2?0:rtt<350&&lp<6?1:2;
+  if(x.type==="outbound-rtp"&&x.kind==="video")bytes=x.bytesSent;if(x.type==="remote-inbound-rtp"&&x.kind==="video")lp2=(x.fractionLost||0)*100});
+ const n=performance.now(),br=lastB&&bytes>=lastB?(bytes-lastB)*8/(n-lastT)/1e3:0;lastB=bytes;lastT=n;const lp=tot?lost/tot*100:lp2,q=rtt<150&&lp<2?0:rtt<350&&lp<6?1:2;
+ if(host&&Q==="auto"){if(q===2){good=0;if(!lowCap){lowCap=true;enc(6e5,2)}}else if(q===0&&lowCap&&++good>=4){lowCap=false;good=0;enc(0,1)}}
  $("#cd").textContent=["🟢","🟡","🔴"][q];$("#cinfo").dataset.v=`${["Excellent","Fair","Poor"][q]} · ${rtt|0} ms · loss ${lp.toFixed(1)}% · ${br.toFixed(1)} Mbps · ${rel?"relay (TURN)":"direct"}`},3000);
 $("#cd").onclick=()=>{const c=$("#cinfo");c.textContent=c.textContent?"":c.dataset.v||"Measuring…"};
 
